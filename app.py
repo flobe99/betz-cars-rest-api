@@ -299,7 +299,7 @@ def addRepair():
     return resp
 
 @app.route('/repairs/deleteRepair/<repairId>', methods= ['DELETE'])
-def delete_car(repairId):
+def delete_repair(repairId):
     car = mongo.repair.delete_one({'_id': ObjectId(repairId)})
     resp = jsonify("Repair deleted successfully")
     return resp
