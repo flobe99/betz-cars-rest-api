@@ -50,7 +50,7 @@ def add_fuels():
 @app.route('/fuels/deleteFuel/<fuelId>', methods=['DELETE'])
 def deleteFuel(fuelId):
     print(fuelId)
-    mongo.db.fuel.delete_one({'_id':ObjectId(fuelId)})
+    mongo.fuel.delete_one({'_id':ObjectId(fuelId)})
     resp = jsonify("User deleted successfully")
 
     resp.status_code = 200
