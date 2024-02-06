@@ -2,7 +2,7 @@ from bson.json_util import dumps
 from flask import Flask
 from pymongo.mongo_client import MongoClient
 from flask import jsonify, request
-
+from bson.objectid import ObjectId
 
 uri = "mongodb://flobe:test@ac-3gep0lx-shard-00-00.xl7gtcu.mongodb.net:27017,ac-3gep0lx-shard-00-01.xl7gtcu.mongodb.net:27017,ac-3gep0lx-shard-00-02.xl7gtcu.mongodb.net:27017/?ssl=true&replicaSet=atlas-vkht93-shard-0&authSource=admin&retryWrites=true&w=majority"
 # Create a new client and connect to the server
@@ -46,6 +46,15 @@ def add_fuels():
         return resp
     else:
         return not_found()
+    
+@app.route('/fuels/deleteFuel/<fuelId>', methods=['DELETE'])
+def deleteFuel(fuelId):
+    print(fuelId)
+    mongo.db.fuel.delete_one({'_id':ObjectId(fuelId)})
+    resp = jsonify("User deleted successfully")
+
+    resp.status_code = 200
+    return resp
 
 @app.route('/cars',  methods=['GET'])
 def cars():
