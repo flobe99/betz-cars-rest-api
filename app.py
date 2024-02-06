@@ -91,17 +91,39 @@ def fuels():
     resp = dumps(fuel)
     return resp
 
-@app.route('/addfuels', methods = ['POST'])
+@app.route('/fuels/addfuels', methods = ['POST'])
 def add_fuels():
     _json = request.json
+    _carId = _json['_carId']
     _kilometer = _json['kilometer']
     _price_liter = _json['price_liter']
     _amount_liter = _json['amount_liter']
     _price = _json['price']
     _date = _json['date']
 
-    if _kilometer and _price_liter and _amount_liter and _date and _price and request.method == 'POST':         
-        id = mongo.fuel.insert_one({"kilometer":_kilometer,"price_liter":_price_liter,"amount_liter":_amount_liter,"date":_date, "price":_price})
+    if _carId and _kilometer and _price_liter and _amount_liter and _date and _price and request.method == 'POST':         
+        id = mongo.fuel.insert_one({"_carId" : ObjectId(_carId),"kilometer":_kilometer,"price_liter":_price_liter,"amount_liter":_amount_liter,"date":_date, "price":_price})
+        
+        resp = jsonify("Fuel added successfully")
+
+        resp.status_code = 200
+
+        return resp
+    else:
+        return not_found()
+    
+@app.route('/fuels/updatefuels/<fuelId>', methods = ['PUT'])
+def update_fuels():
+    _json = request.json
+    _carId = _json['_carId']
+    _kilometer = _json['kilometer']
+    _price_liter = _json['price_liter']
+    _amount_liter = _json['amount_liter']
+    _price = _json['price']
+    _date = _json['date']
+
+    if _carId and _kilometer and _price_liter and _amount_liter and _date and _price and request.method == 'PUT':         
+        id = mongo.fuel.update_one({"_carId":_carId, "kilometer":_kilometer,"price_liter":_price_liter,"amount_liter":_amount_liter,"date":_date, "price":_price})
         
         resp = jsonify("Fuel added successfully")
 
