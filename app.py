@@ -113,7 +113,7 @@ def add_fuels():
         return not_found()
     
 @app.route('/fuels/updatefuels/<fuelId>', methods = ['PUT'])
-def update_fuels():
+def update_fuels(fuelId):
     _json = request.json
     _carId = _json['carId']
     _kilometer = _json['kilometer']
@@ -121,11 +121,12 @@ def update_fuels():
     _amount_liter = _json['amount_liter']
     _price = _json['price']
     _date = _json['date']
+    print("fuelId: "+fuelId)
 
     if _carId and _kilometer and _price_liter and _amount_liter and _date and _price and request.method == 'PUT':         
-        id = mongo.fuel.update_one({"_carId":_carId, "kilometer":_kilometer,"price_liter":_price_liter,"amount_liter":_amount_liter,"date":_date, "price":_price})
+        id = mongo.fuel.update_many({"_id": ObjectId(fuelId)},{"$set":{"_carId" : ObjectId(_carId),"kilometer":_kilometer,"price_liter":_price_liter,"amount_liter":_amount_liter,"date":_date, "price":_price}},upsert=True)
         
-        resp = jsonify("Fuel added successfully")
+        resp = jsonify("Fuel updated successfully")
 
         resp.status_code = 200
 
@@ -270,7 +271,6 @@ def car_fuels(carId):
     resp = dumps(fuels)
     return resp
 
-@app.route('/cars/fuels/<carId>', methods= ['GET'])
 @app.route('/repairs', methods = ['GET'])
 def repairs():
     car = mongo.repair.find()
