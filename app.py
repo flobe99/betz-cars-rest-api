@@ -270,6 +270,7 @@ def car_fuels(carId):
     resp = dumps(fuels)
     return resp
 
+@app.route('/cars/fuels/<carId>', methods= ['GET'])
 @app.route('/repairs', methods = ['GET'])
 def repairs():
     car = mongo.repair.find()
