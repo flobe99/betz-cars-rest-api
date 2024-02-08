@@ -94,14 +94,14 @@ def fuels():
 @app.route('/fuels/addfuels', methods = ['POST'])
 def add_fuels():
     _json = request.json
-    _carId = _json['_carId']
+    _carId = _json['carId']
     _kilometer = _json['kilometer']
     _price_liter = _json['price_liter']
     _amount_liter = _json['amount_liter']
     _price = _json['price']
     _date = _json['date']
 
-    if _carId and _kilometer and _price_liter and _amount_liter and _date and _price and request.method == 'POST':         
+    if _carId and _kilometer and _price_liter and _amount_liter and _price and _date  and request.method == 'POST':         
         id = mongo.fuel.insert_one({"_carId" : ObjectId(_carId),"kilometer":_kilometer,"price_liter":_price_liter,"amount_liter":_amount_liter,"date":_date, "price":_price})
         
         resp = jsonify("Fuel added successfully")
@@ -115,7 +115,7 @@ def add_fuels():
 @app.route('/fuels/updatefuels/<fuelId>', methods = ['PUT'])
 def update_fuels():
     _json = request.json
-    _carId = _json['_carId']
+    _carId = _json['carId']
     _kilometer = _json['kilometer']
     _price_liter = _json['price_liter']
     _amount_liter = _json['amount_liter']
@@ -262,6 +262,12 @@ def update_car(carId):
 def delete_car(carId):
     car = mongo.car.delete_one({'_id': ObjectId(carId)})
     resp = jsonify("Car deleted successfully")
+    return resp
+
+@app.route('/cars/fuels/<carId>', methods= ['GET'])
+def car_fuels(carId):
+    fuels = mongo.fuel.find({"_carId" : ObjectId(carId)}).sort({"date": -1})
+    resp = dumps(fuels)
     return resp
 
 @app.route('/repairs', methods = ['GET'])
