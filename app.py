@@ -264,6 +264,7 @@ def delete_car(carId):
     resp = jsonify("Car deleted successfully")
     return resp
 
+@app.route('/cars/fuels/<carId>', methods= ['GET'])
 @app.route('/repairs', methods = ['GET'])
 def repairs():
     car = mongo.repair.find()
