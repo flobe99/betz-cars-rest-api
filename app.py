@@ -1,9 +1,11 @@
+import datetime
 from bson.json_util import dumps
+import dateutil
 from flask import Flask
 from pymongo.mongo_client import MongoClient
 from flask import jsonify, request
 from bson.objectid import ObjectId
-from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import datetime
 
 uri = "mongodb://flobe:test@ac-3gep0lx-shard-00-00.xl7gtcu.mongodb.net:27017,ac-3gep0lx-shard-00-01.xl7gtcu.mongodb.net:27017,ac-3gep0lx-shard-00-02.xl7gtcu.mongodb.net:27017/?ssl=true&replicaSet=atlas-vkht93-shard-0&authSource=admin&retryWrites=true&w=majority"
 # Create a new client and connect to the server
@@ -101,8 +103,10 @@ def add_fuels():
     _price = _json['price']
     _date = _json['date']
 
+    date_object = datetime.fromisoformat(_date.replace("Z", "+00:00"))
+
     if _carId and _kilometer and _price_liter and _amount_liter and _price and _date  and request.method == 'POST':         
-        id = mongo.fuel.insert_one({"_carId" : ObjectId(_carId),"kilometer":_kilometer,"price_liter":_price_liter,"amount_liter":_amount_liter,"date":_date, "price":_price})
+        id = mongo.fuel.insert_one({"_carId" : ObjectId(_carId),"kilometer":_kilometer,"price_liter":_price_liter,"amount_liter":_amount_liter,"date":date_object, "price":_price})
         
         resp = jsonify("Fuel added successfully")
 
@@ -123,8 +127,10 @@ def update_fuels(fuelId):
     _date = _json['date']
     print("fuelId: "+fuelId)
 
+    date_object = datetime.fromisoformat(_date.replace("Z", "+00:00"))
+
     if _carId and _kilometer and _price_liter and _amount_liter and _date and _price and request.method == 'PUT':         
-        id = mongo.fuel.update_many({"_id": ObjectId(fuelId)},{"$set":{"_carId" : ObjectId(_carId),"kilometer":_kilometer,"price_liter":_price_liter,"amount_liter":_amount_liter,"date":_date, "price":_price}},upsert=True)
+        id = mongo.fuel.update_many({"_id": ObjectId(fuelId)},{"$set":{"_carId" : ObjectId(_carId),"kilometer":_kilometer,"price_liter":_price_liter,"amount_liter":_amount_liter,"date":date_object, "price":_price}},upsert=True)
         
         resp = jsonify("Fuel updated successfully")
 
@@ -145,7 +151,73 @@ def deleteFuel(fuelId):
 
 @app.route('/cars',  methods=['GET'])
 def cars():
-    cars = mongo.car.find()
+    cars = mongo.car.aggregate([
+  {
+    "$lookup": {
+      "from": "fuel",
+      "localField": "_id",
+      "foreignField": "_carId",
+      "as": "fuelData"
+    }
+  },
+  {
+    "$unwind": "$fuelData"
+  },
+  {
+    "$sort": {
+      "fuelData.kilometer": -1
+    }
+  },
+  {
+    "$group": {
+      "_id": "$_id",
+      "buying-price": {
+        "$first": "$buying-price"
+      },
+      "customer-service": {
+        "$first": "$customer-service"
+      },
+      "kilometer": {
+        "$first": "$fuelData.kilometer"
+      },
+      "last_fuel": {
+          "$first": "$fuelData.date"
+      },
+      "modell": {
+        "$first": "$modell"
+      },
+      "next-inspection": {
+        "$first": "$next-inspection"
+      },
+      "oil-change": {
+        "$first": "$oil-change"
+      },
+      "producer": {
+        "$first": "$producer"
+      },
+      "repair-costs": {
+        "$first": "$repair-costs"
+      },
+      "year": {
+        "$first": "$year"
+      }
+    }
+  },
+  {
+    "$project": {
+      "_id": 1,
+      "buying-price": 1,
+      "customer-service": 1,
+      "kilometer": 1,
+      "modell": 1,
+      "next-inspection": 1,
+      "oil-change": 1,
+      "producer": 1,
+      "repair-costs": 1,
+      "year": 1
+    }
+  }
+])
     resp = dumps(cars)
     return resp
 
