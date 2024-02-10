@@ -1,6 +1,5 @@
 import datetime
 from bson.json_util import dumps
-import dateutil
 from flask import Flask
 from pymongo.mongo_client import MongoClient
 from flask import jsonify, request
