@@ -2,6 +2,8 @@ import datetime
 from bson.json_util import dumps
 from flask import Flask
 from pymongo.mongo_client import MongoClient
+from werkzeug.security import generate_password_hash, check_password_hash
+
 from flask import jsonify, request
 from bson.objectid import ObjectId
 from datetime import datetime
@@ -22,6 +24,42 @@ print("##########################")
 mongo = client.Cars
 
 app = Flask(__name__)
+
+@app.route('/users/signup', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        _json = request.json
+        _username = _json['username']
+        _password = _json['password']
+        
+        # Check if the username already exists
+        if mongo.users.find_one({'username': _username}):
+            resp = jsonify("Username already exists. Choose a different one."), 401
+        else:
+            _hashed_password = generate_password_hash(_password)
+            mongo.users.insert_one({'username': _username, 'password': _hashed_password})
+            resp = jsonify("Registration successful. You can now log in."), 200
+            return resp
+        
+
+    return resp
+
+@app.route('/users/signin', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        _json = request.json
+        _username = _json['username']
+        _password = _json['password']
+
+        # Check if the username and password match
+        user = mongo.users.find_one({'username': _username})
+        if check_password_hash(user["password"], _password):
+            resp = jsonify("Login successful."), 200
+            # Add any additional logic, such as session management
+        else:
+            resp = jsonify("Invalid username or password. Please try again."), 401
+
+    return resp
 
 @app.route('/users/addUser', methods=['POST'])
 def add_user():
