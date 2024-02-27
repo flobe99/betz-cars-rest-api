@@ -2,7 +2,7 @@ import datetime
 from bson.json_util import dumps
 from flask import Flask
 from pymongo.mongo_client import MongoClient
-from werkzeug.security import generate_password_hash, check_password_hash
+from flask_bcrypt import Bcrypt 
 
 from flask import jsonify, request
 from bson.objectid import ObjectId
@@ -25,6 +25,8 @@ mongo = client.Cars
 
 app = Flask(__name__)
 
+bcrypt = Bcrypt(app) 
+
 @app.route('/users/signup', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -36,7 +38,7 @@ def register():
         if mongo.users.find_one({'username': _username}):
             resp = jsonify("Username already exists. Choose a different one."), 401
         else:
-            _hashed_password = generate_password_hash(_password)
+            _hashed_password = bcrypt.generate_password_hash(_password).decode('utf-8')
             mongo.users.insert_one({'username': _username, 'password': _hashed_password})
             resp = jsonify("Registration successful. You can now log in."), 200
             return resp
@@ -53,7 +55,7 @@ def login():
 
         # Check if the username and password match
         user = mongo.users.find_one({'username': _username})
-        if check_password_hash(user["password"], _password):
+        if bcrypt.check_password_hash(user["password"], _password):
             resp = jsonify("Login successful."), 200
             # Add any additional logic, such as session management
         else:
