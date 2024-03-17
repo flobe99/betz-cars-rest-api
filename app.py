@@ -191,71 +191,54 @@ def deleteFuel(fuelId):
 @app.route('/cars',  methods=['GET'])
 def cars():
     cars = mongo.car.aggregate([
-  {
-    "$lookup": {
-      "from": "fuel",
-      "localField": "_id",
-      "foreignField": "_carId",
-      "as": "fuelData"
+    {
+        '$lookup': {
+            'from': 'fuel', 
+            'localField': '_id', 
+            'foreignField': '_carId', 
+            'as': 'fuelData'
+        }
+    }, {
+        '$unwind': '$fuelData'
+    }, {
+        '$sort': {
+            'fuelData.kilometer': -1
+        }
+    }, {
+        '$group': {
+            '_id': '$_id', 
+            'buying-price': {
+                '$first': '$buying-price'
+            }, 
+            'customer-service': {
+                '$first': '$customer-service'
+            }, 
+            'kilometer': {
+                '$first': '$fuelData.kilometer'
+            }, 
+            'last_fuel': {
+                '$first': '$fuelData.date'
+            }, 
+            'modell': {
+                '$first': '$modell'
+            }, 
+            'next-inspection': {
+                '$first': '$next-inspection'
+            }, 
+            'oil-change': {
+                '$first': '$oil-change'
+            }, 
+            'producer': {
+                '$first': '$producer'
+            }, 
+            'repair-costs': {
+                '$first': '$repair-costs'
+            }, 
+            'year': {
+                '$first': '$year'
+            }
+        }
     }
-  },
-  {
-    "$unwind": "$fuelData"
-  },
-  {
-    "$sort": {
-      "fuelData.kilometer": -1
-    }
-  },
-  {
-    "$group": {
-      "_id": "$_id",
-      "buying-price": {
-        "$first": "$buying-price"
-      },
-      "customer-service": {
-        "$first": "$customer-service"
-      },
-      "kilometer": {
-        "$first": "$fuelData.kilometer"
-      },
-      "last_fuel": {
-          "$first": "$fuelData.date"
-      },
-      "modell": {
-        "$first": "$modell"
-      },
-      "next-inspection": {
-        "$first": "$next-inspection"
-      },
-      "oil-change": {
-        "$first": "$oil-change"
-      },
-      "producer": {
-        "$first": "$producer"
-      },
-      "repair-costs": {
-        "$first": "$repair-costs"
-      },
-      "year": {
-        "$first": "$year"
-      }
-    }
-  },
-  {
-    "$project": {
-      "_id": 1,
-      "buying-price": 1,
-      "customer-service": 1,
-      "kilometer": 1,
-      "modell": 1,
-      "next-inspection": 1,
-      "oil-change": 1,
-      "producer": 1,
-      "repair-costs": 1,
-      "year": 1
-    }
-  }
 ])
     resp = dumps(cars)
     return resp
